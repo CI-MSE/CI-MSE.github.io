@@ -119,9 +119,81 @@ function setupVideoCarouselAutoplay() {
     });
 }
 
-$(document).ready(function() {
-    // Check for click events on the navbar burger icon
+function setupExecutionCarousel() {
+    const carousel = document.querySelector('.execution-carousel');
+    if (!carousel) return;
 
+    const track = carousel.querySelector('.execution-track');
+    const cards = Array.from(carousel.querySelectorAll('.execution-card'));
+    const filterButtons = Array.from(document.querySelectorAll('.execution-filter-btn'));
+    const prevButton = carousel.querySelector('.execution-nav-prev');
+    const nextButton = carousel.querySelector('.execution-nav-next');
+    let currentFilter = carousel.dataset.currentFilter || 'simulation';
+    let currentIndex = 0;
+
+    function visibleCards() {
+        return cards.filter(card => card.dataset.type === currentFilter);
+    }
+
+    function itemsPerView() {
+        return window.matchMedia('(max-width: 768px)').matches ? 1 : 3;
+    }
+
+    function pauseHiddenVideos() {
+        cards.forEach(card => {
+            const video = card.querySelector('video');
+            if (!card.classList.contains('is-visible') && video) {
+                video.pause();
+            }
+        });
+    }
+
+    function updateCarousel() {
+        const filteredCards = visibleCards();
+        const maxIndex = Math.max(filteredCards.length - itemsPerView(), 0);
+        currentIndex = Math.min(currentIndex, maxIndex);
+
+        cards.forEach(card => {
+            card.classList.toggle('is-visible', card.dataset.type === currentFilter);
+        });
+
+        const firstCard = filteredCards[0];
+        const trackStyle = window.getComputedStyle(track);
+        const parsedGap = parseFloat(trackStyle.columnGap || trackStyle.gap);
+        const gap = Number.isNaN(parsedGap) ? 0 : parsedGap;
+        const step = firstCard ? firstCard.getBoundingClientRect().width + gap : 0;
+        track.style.transform = `translateX(-${currentIndex * step}px)`;
+
+        pauseHiddenVideos();
+    }
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            currentFilter = button.dataset.filter;
+            carousel.dataset.currentFilter = currentFilter;
+            currentIndex = 0;
+            filterButtons.forEach(item => item.classList.toggle('is-active', item === button));
+            updateCarousel();
+        });
+    });
+
+    prevButton.addEventListener('click', function() {
+        const maxIndex = Math.max(visibleCards().length - itemsPerView(), 0);
+        currentIndex = currentIndex === 0 ? maxIndex : currentIndex - 1;
+        updateCarousel();
+    });
+
+    nextButton.addEventListener('click', function() {
+        const maxIndex = Math.max(visibleCards().length - itemsPerView(), 0);
+        currentIndex = currentIndex === maxIndex ? 0 : currentIndex + 1;
+        updateCarousel();
+    });
+
+    window.addEventListener('resize', updateCarousel);
+    updateCarousel();
+}
+
+function initializePage() {
     var options = {
 		slidesToScroll: 1,
 		slidesToShow: 1,
@@ -132,11 +204,21 @@ $(document).ready(function() {
     }
 
 	// Initialize all div with carousel class
-    var carousels = bulmaCarousel.attach('.carousel', options);
+    if (window.bulmaCarousel) {
+        bulmaCarousel.attach('.carousel', options);
+    }
 	
-    bulmaSlider.attach();
+    if (window.bulmaSlider) {
+        bulmaSlider.attach();
+    }
     
     // Setup video autoplay for carousel
     setupVideoCarouselAutoplay();
+    setupExecutionCarousel();
+}
 
-})
+if (window.jQuery) {
+    $(document).ready(initializePage);
+} else {
+    document.addEventListener('DOMContentLoaded', initializePage);
+}
