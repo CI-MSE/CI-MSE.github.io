@@ -229,7 +229,7 @@
             <h2 class="title is-3">Abstract</h2>
             <div class="content has-text-justified">
               <p>
-                Real-world evaluation is the gold standard for robot manipulation policies because it tests them against the physical conditions and deployment challenges they are ultimately designed to handle. However, real-world evaluation is also the bottleneck for iterating on robot policies: it is costly, difficult to reproduce, and often too sparse to reliably compare nearby model variants. A straightforward proxy for performance is validation loss on expert demonstrations, but this proxy is often poorly correlated with real-world performance. In this paper, we introduce Critical Interval MSE (CI-MSE), an intuitively simple yet effective offline validation metric. CI-MSE restricts error computation to task-critical segments and pairs it with simple action-alignment procedures that better match rollout-time behavior. Across simulation and real-world experiments, CI-MSE yields a stronger correlation between validation error and rollout performance than raw MSE. Across a wide range of policy checkpoints, CI-MSE achieves a Spearman's rank correlation of -0.87, much closer to the ideal value of -1 than raw MSE's -0.61, demonstrating a significant improvement. We show through sensitivity analysis that our metric is robust to a wide range of hyperparameters. We further study the effectiveness of CI-MSE under evaluation distribution shifts and suggest design boundaries when using this metric. In summary, this paper provides a simple and reliable offline validation tool for accelerating policy iteration. Project webpage: <a href="https://ci-mse.github.io/" target="_blank">https://ci-mse.github.io/</a>
+                Real-world evaluation is the gold standard for robot manipulation policies because it tests them against the physical conditions and deployment challenges they are ultimately designed to handle. However, real-world evaluation is also the bottleneck for iterating on robot policies: it is costly, difficult to reproduce, and often too sparse to reliably compare nearby model variants. A straightforward proxy for performance is validation loss on expert demonstrations, but this proxy is often poorly correlated with real-world performance. In this paper, we introduce Critical Interval MSE (CI-MSE), an intuitively simple yet effective offline validation metric. CI-MSE restricts error computation to task-critical segments and pairs it with simple action-alignment procedures that better match rollout-time behavior. Across simulation and real-world experiments, CI-MSE yields a stronger correlation between validation error and rollout performance than raw MSE. Across a wide range of policy checkpoints, CI-MSE achieves a Spearman's rank correlation of -0.87, much closer to the ideal value of -1 than raw MSE's -0.61, demonstrating a significant improvement. We show through sensitivity analysis that our metric is robust to a wide range of hyperparameters. We further study the effectiveness of CI-MSE under evaluation distribution shifts and suggest design boundaries when using this metric. In summary, this paper provides a simple and reliable offline validation tool for accelerating policy iteration. 
               </p>
             </div>
           </div>
@@ -267,7 +267,7 @@
               </article>
               <article class="execution-card" data-type="simulation">
                 <video autoplay controls muted loop playsinline preload="metadata">
-                  <source src="static/videos/carousel1.mp4" type="video/mp4">
+                  <source src="static/videos/sim-2.mp4" type="video/mp4">
                 </video>
               </article>
               <article class="execution-card" data-type="simulation">
@@ -363,11 +363,14 @@
             In simulation, CI-MSE is evaluated on a large-scale manipulation benchmark with many policy variants. The comparison includes changes in model architecture, training data scale, training steps, parameter-efficient finetuning, action-head size, and VLM backbone. The key question is whether an offline validation metric can preserve the same ordering as rollout success rate.
           </p>
         </div>
-        <div class="performance-media">
-          <video controls muted loop preload="metadata">
-            <source src="static/videos/carousel1.mp4" type="video/mp4">
+        <div class="performance-media simulation-performance-media">
+          <video controls muted loop preload="metadata" width="2136" height="836">
+            <source src="static/videos/sim_coll-1.mp4" type="video/mp4">
           </video>
         </div>
+        <p class="simulation-demo-caption">
+          Demo videos from the data scale variant family.
+        </p>
         <div class="chart-panel" id="ci-mse-chart-panel">
           <div class="chart-controls">
             <h3 id="ci-mse-chart-title" class="chart-view-title">Success Rate vs Validation Error</h3>
@@ -478,8 +481,8 @@
         <div class="content takeaway-list">
           <ol>
             <li>CI-MSE is effective, improving the agreement between offline validation and rollout performance over raw MSE.</li>
-            <li>CI-MSE is validated in both simulation and real-world experiments, and remains effective across multiple hyperparameter settings.</li>
-            <li>The <a href="https://github.com/CI-MSE/CI-MSE" target="_blank">code repository</a> provides an automated annotation tool for preparing critical intervals.</li>
+            <li>CI-MSE is validated in both simulation and real-world experiments, and is robust across a wide range of hyperparmeter selction.</li>
+            <li>The <a href="https://github.com/CI-MSE/CI-MSE" target="_blank">code repository</a> provides an automated pipeline for building customized offline validation benchmark.</li>
           </ol>
         </div>
       </div>

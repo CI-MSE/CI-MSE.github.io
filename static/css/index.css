@@ -741,6 +741,7 @@ code {
   display: none;
   flex: 0 0 calc((100% - 2rem) / 3);
   min-width: 0;
+  position: relative;
   background: var(--background-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -763,9 +764,42 @@ code {
 .performance-media video {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: auto;
   background: #0f172a;
-  object-fit: cover;
+  object-fit: contain;
+}
+
+.simulation-performance-media video {
+  aspect-ratio: 2136 / 836;
+}
+
+.simulation-performance-media {
+  margin-bottom: 0.75rem;
+}
+
+.simulation-demo-caption {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0 0 2rem;
+  text-align: center;
+}
+
+.execution-card[data-type="simulation"]::after {
+  content: "2x";
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: 6px;
+  background: rgb(15 23 42 / 0.78);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0.32rem 0.48rem;
 }
 
 .execution-card h3 {
@@ -887,6 +921,7 @@ code {
 
 .performance-media {
   margin: 1.5rem 0 2rem;
+  position: relative;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-xl);
   overflow: hidden;

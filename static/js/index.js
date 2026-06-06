@@ -193,6 +193,15 @@ function setupExecutionCarousel() {
     updateCarousel();
 }
 
+function setupSimulationVideoSpeed() {
+    const simulationVideos = document.querySelectorAll('.execution-card[data-type="simulation"] video');
+
+    simulationVideos.forEach(video => {
+        video.defaultPlaybackRate = 2;
+        video.playbackRate = 2;
+    });
+}
+
 function initializePage() {
     var options = {
 		slidesToScroll: 1,
@@ -214,6 +223,7 @@ function initializePage() {
     
     // Setup video autoplay for carousel
     setupVideoCarouselAutoplay();
+    setupSimulationVideoSpeed();
     setupExecutionCarousel();
 }
 
