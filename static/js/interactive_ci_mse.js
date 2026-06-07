@@ -104,14 +104,44 @@
         };
     }
 
-    function hoverText(point, xLabel) {
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
+    }
+
+    function metricHoverLabel(metric) {
+        return metric === 'Raw MSE' ? 'MSE' : 'CI-MSE';
+    }
+
+    function metricHoverColor(metric) {
+        return COLORS[metric] || '#1e293b';
+    }
+
+    function variantTitle(point) {
+        const family = point.variant_family || point.group_label || 'Variant family';
+        const variant = point.variant || point.model || 'Variant';
+        return `${family} (${variant})`;
+    }
+
+    function hoverValueRows(rows) {
+        return rows.map(row => [
+            `<span class="ci-mse-hover-key">${escapeHtml(row.label)}</span>`,
+            '<span class="ci-mse-hover-separator">:</span>',
+            `<span class="ci-mse-hover-value">${escapeHtml(row.value)}</span>`
+        ].join('')).join('');
+    }
+
+    function hoverText(point, rows) {
+        const color = metricHoverColor(point.metric);
         return [
-            `<b>${point.model}</b>`,
-            `Variant family: ${point.group_label}`,
-            `Metric: ${point.metric}`,
-            `${xLabel}: ${Number(point.validation_error).toPrecision(4)}`,
-            `Success rate: ${(Number(point.success_rate) * 100).toFixed(1)}%`
-        ].join('<br>');
+            `<div class="ci-mse-hover-title" style="color: ${color};">${escapeHtml(variantTitle(point))}</div>`,
+            `<div class="ci-mse-hover-values">${hoverValueRows(rows)}</div>`
+        ].join('');
     }
 
     function scatterTraces(data, metrics) {
@@ -123,9 +153,12 @@
                 name: metric,
                 x: points.map(point => Number(point.validation_error)),
                 y: points.map(point => displaySuccessRate(point.success_rate)),
-                text: points.map(point => hoverText(point, `${metric} validation error`)),
+                text: points.map(point => hoverText(point, [
+                    { label: metricHoverLabel(point.metric), value: Number(point.validation_error).toPrecision(4) },
+                    { label: 'Success Rate', value: `${(Number(point.success_rate) * 100).toFixed(1)}%` }
+                ])),
                 customdata: points.map(point => point.group),
-                hovertemplate: '%{text}<extra></extra>',
+                hoverinfo: 'none',
                 cliponaxis: false,
                 meta: { kind: 'points' },
                 marker: {
@@ -171,15 +204,12 @@
                 name: metric,
                 x: points.map(point => point.validation_rank),
                 y: points.map(point => point.success_rank),
-                text: points.map(point => [
-                    `<b>${point.model}</b>`,
-                    `Variant family: ${point.group_label}`,
-                    `Metric: ${point.metric}`,
-                    `Validation-error rank: ${Number(point.validation_rank).toFixed(1)}`,
-                    `Success-rate rank: ${Number(point.success_rank).toFixed(1)}`
-                ].join('<br>')),
+                text: points.map(point => hoverText(point, [
+                    { label: `${metricHoverLabel(point.metric)} Rank`, value: Number(point.validation_rank).toFixed(1) },
+                    { label: 'Success Rate Rank', value: Number(point.success_rank).toFixed(1) }
+                ])),
                 customdata: points.map(point => point.group),
-                hovertemplate: '%{text}<extra></extra>',
+                hoverinfo: 'none',
                 cliponaxis: false,
                 meta: { kind: 'points' },
                 marker: {
@@ -278,6 +308,60 @@
         Plotly.restyle(chart, { opacity: traceOpacity });
     }
 
+    function hoveredPointHtml(event) {
+        const point = event && event.points && event.points[0];
+        if (!point) return '';
+        if (typeof point.text === 'string') return point.text;
+        if (point.data && Array.isArray(point.data.text)) return point.data.text[point.pointNumber] || '';
+        return '';
+    }
+
+    function ensureHoverLabel(chart) {
+        if (!chart.__ciMseHoverLabel) {
+            const label = document.createElement('div');
+            label.className = 'ci-mse-hover-label';
+            label.hidden = true;
+            label.setAttribute('role', 'tooltip');
+            chart.appendChild(label);
+            chart.__ciMseHoverLabel = label;
+        }
+        return chart.__ciMseHoverLabel;
+    }
+
+    function positionHoverLabel(chart, label, mouseEvent) {
+        const chartRect = chart.getBoundingClientRect();
+        let left = chartRect.width * 0.5;
+        let top = chartRect.height * 0.5;
+
+        if (mouseEvent && Number.isFinite(mouseEvent.clientX) && Number.isFinite(mouseEvent.clientY)) {
+            left = mouseEvent.clientX - chartRect.left + 14;
+            top = mouseEvent.clientY - chartRect.top + 14;
+        }
+
+        const maxLeft = Math.max(8, chartRect.width - label.offsetWidth - 8);
+        const maxTop = Math.max(8, chartRect.height - label.offsetHeight - 8);
+        label.style.left = `${Math.min(Math.max(left, 8), maxLeft)}px`;
+        label.style.top = `${Math.min(Math.max(top, 8), maxTop)}px`;
+    }
+
+    function showHoverLabel(chart, event) {
+        const html = hoveredPointHtml(event);
+        if (!html) return;
+
+        const label = ensureHoverLabel(chart);
+        label.innerHTML = html;
+        label.hidden = false;
+        label.classList.add('is-visible');
+        positionHoverLabel(chart, label, event && event.event);
+    }
+
+    function hideHoverLabel(chart) {
+        const label = chart && chart.__ciMseHoverLabel;
+        if (!label) return;
+        label.classList.remove('is-visible');
+        label.hidden = true;
+    }
+
     function attachVariantHover(chart) {
         if (!chart || !chart.on) return;
 
@@ -290,9 +374,11 @@
             hover: function(event) {
                 const activeGroup = event && event.points && event.points[0] && event.points[0].customdata;
                 applyVariantFocus(chart, activeGroup);
+                showHoverLabel(chart, event);
             },
             unhover: function() {
                 clearVariantFocus(chart);
+                hideHoverLabel(chart);
             }
         };
 
@@ -303,6 +389,7 @@
         if (!chart.__ciMseMouseLeaveBound) {
             chart.addEventListener('mouseleave', function() {
                 clearVariantFocus(chart);
+                hideHoverLabel(chart);
             });
             chart.__ciMseMouseLeaveBound = true;
         }
@@ -357,6 +444,7 @@
             paper_bgcolor: '#ffffff',
             plot_bgcolor: '#ffffff',
             font: { family: 'Inter, sans-serif', color: '#1e293b' },
+            hovermode: 'closest',
             title: { text: '' },
             legend: { orientation: 'h', y: -0.26 },
             shapes: [],
