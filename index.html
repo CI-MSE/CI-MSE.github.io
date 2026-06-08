@@ -329,14 +329,17 @@
         <h2 class="title is-3">Intuition</h2>
         <figure class="method-figure intuition-figure">
           <img src="static/images/intuition.jpg" alt="Critical intervals in a robot manipulation trajectory" loading="lazy">
-          <figcaption class="figure-caption">Figure 1: Aggregated MSE is dominated by uncritical move actions, while CI-MSE focuses on the critical grasp stage.</figcaption>
+          <figcaption class="figure-caption">Aggregated MSE is dominated by uncritical move actions, while CI-MSE focuses on the critical grasp stage.</figcaption>
         </figure>
         <div class="content has-text-justified">
           <p>
             Offline validation can be misleading because many trajectory timesteps are not decisive for task completion, yet they can contribute large action errors. In the bottle-transfer example, transition motions may vary safely across demonstrations, while the grasp stage is brief, contact-rich, and tightly tied to success. CI-MSE therefore measures error on critical intervals instead of averaging across the whole trajectory, so the validation signal is less obscured by uninformative motion.
           </p>
         </div>
-        <iframe src="static/html/vis_traj_error.html" width="100%" height="780" scrolling="no" style="border:0; display:block; overflow:hidden;"></iframe>
+        <figure class="method-figure">
+          <iframe src="static/html/vis_traj_error.html" title="Pour Water task demo" width="100%" height="780" scrolling="no" style="border:0; display:block; overflow:hidden;"></iframe>
+          <figcaption class="figure-caption">Pour Water demo: the robot first grasps a randomly placed drinking bottle, then pours water into a mug, and finally places the bottle on a red coaster.</figcaption>
+        </figure>
       </div>
     </section>
 
